@@ -6,211 +6,186 @@
 	<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
 </head>
 <body>
-<script type="module">
-onload = () => {
-  const TITLE = 0;
-  const GAME = 1;
-  const CLEAR = 2;
-  let state = TITLE;
+<script>"use strict";
+const TITLE = 0;
+const GAME = 1;
+const CLEAR = 2;
+AFRAME.registerComponent("main", {
+	init: () => {
+    this.state = TITLE;
 
-  const scene = document.querySelector("a-scene");
+    let obj = document.createElement("a-text");
+    obj.setAttribute("position", { x: 0, y: 1.8, z: -2 });
+    obj.setAttribute("scale", "1.7 1.7 1");
+    obj.setAttribute("align", "center");
+    obj.setAttribute("color", "#FFF");
+    scene.appendChild(obj);
+    this.text1 = obj;
 
-  let obj = document.createElement("a-text");
-  obj.setAttribute("position", { x: 0, y: 1.8, z: -2 });
-  obj.setAttribute("scale", "1.7 1.7 1");
-  obj.setAttribute("align", "center");
-  obj.setAttribute("color", "#FFF");
-  scene.appendChild(obj);
-  const text1 = obj;
+    obj = document.createElement("a-text");
+    obj.setAttribute("position", { x: 0, y: 1, z: -2.4 });
+    obj.setAttribute("scale", "0.8 0.8 1");
+    obj.setAttribute("align", "center");
+    obj.setAttribute("color", "#FFF");
+    scene.appendChild(obj);
+    this.text2 = obj;
 
-  obj = document.createElement("a-text");
-  obj.setAttribute("position", { x: 0, y: 1, z: -2.4 });
-  obj.setAttribute("scale", "0.8 0.8 1");
-  obj.setAttribute("align", "center");
-  obj.setAttribute("color", "#FFF");
-  scene.appendChild(obj);
-  const text2 = obj;
+    this.score = 99;
+    this.highs = 30;
 
-  let score = 99;
-  let highs = 30;
+    const title = () => {
+      this.text1.setAttribute("value", "one2twenty");
+      this.text2.setAttribute(
+        "value",
+        "TRIGGER TO START\n\nTIME: " + this.score.toFixed(2) + "sec  FASTEST: " +
+          this.highs.toFixed(2) + "sec",
+      );
+      this.state = TITLE;
+      /*
+      setTimeout(() => {
+        state = TITLE;
+      }, 500);
+      */
+    };
+    title();
 
-  const title = () => {
-		text1.setAttribute("value", "one2twenty");
-    text2.setAttribute(
-      "value",
-      "TRIGGER TO START\n\nTIME: " + score.toFixed(2) + "sec  FASTEST: " +
-        highs.toFixed(2) + "sec",
-    );
-		state = TITLE;
-		/*
-    setTimeout(() => {
-			state = TITLE;
-    }, 500);
-		*/
-  };
-  title();
+    this.cnt = 0;
+    this.startt = 0;
+    this.pnt = [];
+    this.objs = [];
+    this.texts = [];
+    this.size = 0.1;
+    this.ns = 20;
+    //const ns = 10
 
-  let cnt = 0;
-  let startt = 0;
-  let pnt = [];
-  let objs = [];
-  let texts = [];
-  const size = 0.1;
-  const ns = 20;
-  //const ns = 10
-
-  const init = () => {
-    objs = [];
-    texts = [];
-    const rndw = 1.2;
-    //	const rndw = 0.8
-    for (let i = 0; i < ns; i++) {
-      const x = Math.random() * rndw - rndw / 2;
-      //const y = Math.random() * rndw + .5
-      const y = Math.random() * rndw + .3;
-      const z = Math.random() * rndw / 2 - 1.3;
-      const p = new THREE.Vector3(x, y, z);
-      let flg = false;
-      for (let j = 0; j < pnt.length; j++) {
-        if (pnt[j].distanceTo(p) < size * 2) {
-          flg = true;
-          break;
+    const init = () => {
+      objs = [];
+      texts = [];
+      const rndw = 1.2;
+      //	const rndw = 0.8
+      for (let i = 0; i < ns; i++) {
+        const x = Math.random() * rndw - rndw / 2;
+        //const y = Math.random() * rndw + .5
+        const y = Math.random() * rndw + .3;
+        const z = Math.random() * rndw / 2 - 1.3;
+        const p = new THREE.Vector3(x, y, z);
+        let flg = false;
+        for (let j = 0; j < this.pnt.length; j++) {
+          if (this.pnt[j].distanceTo(p) < size * 2) {
+            flg = true;
+            break;
+          }
         }
+        if (flg) {
+          i--;
+          continue;
+        }
+        this.pnt[i] = p;
+
+        const obj = document.createElement("a-sphere");
+        obj.setAttribute("position", p);
+        obj.setAttribute("radius", size);
+        obj.setAttribute("opacity", 0.8);
+        scene.appendChild(obj);
+
+        const obj2 = document.createElement("a-entity");
+        obj2.setAttribute("position", { x: p.x, y: p.y, z: p.z + size });
+        obj2.setAttribute("text", {
+          "value": i + 1,
+          "align": "center",
+          "color": "#000",
+        });
+        scene.appendChild(obj2);
+
+        //obj.text = obj2
+        this.texts.push(obj2);
+        this.objs.push(obj);
       }
-      if (flg) {
-        i--;
-        continue;
+      this.state = GAME;
+
+      text1.setAttribute("value", "");
+      text2.setAttribute("value", "");
+      this.cnt = 0;
+      this.startt = new Date().getTime();
+    };
+    //
+    const clicked = () => {
+      if (state == TITLE) {
+        init();
+      } else if (state == GAME) {
+      } else if (state == CLEAR) {
+        title();
       }
-      pnt[i] = p;
+    };
 
-      const obj = document.createElement("a-sphere");
-      obj.setAttribute("position", p);
-      obj.setAttribute("radius", size);
-      obj.setAttribute("opacity", 0.8);
-      scene.appendChild(obj);
-
-      const obj2 = document.createElement("a-entity");
-      obj2.setAttribute("position", { x: p.x, y: p.y, z: p.z + size });
-      obj2.setAttribute("text", {
-        "value": i + 1,
-        "align": "center",
-        "color": "#000",
-      });
-      scene.appendChild(obj2);
-
-      //obj.text = obj2
-      texts.push(obj2);
-      objs.push(obj);
-    }
-    state = GAME;
-
-    text1.setAttribute("value", "");
-    text2.setAttribute("value", "");
-    cnt = 0;
-    startt = new Date().getTime();
-  };
-
-  const hands = [handright, handleft];
-  const loop = () => {
-    if (state == GAME) {
+    handright.addEventListener("triggerdown", function (evt) {
+      clicked();
+    });
+    handright.addEventListener("triggerup", function (evt) {
+    });
+    handright.addEventListener("gripdown", function (evt) {
+    });
+    handright.addEventListener("gripup", function (evt) {
+    });
+    handleft.addEventListener("triggerdown", function (evt) {
+      clicked();
+    });
+    handleft.addEventListener("triggerup", function (evt) {
+    });
+    handleft.addEventListener("gripdown", function (evt) {
+    });
+    handleft.addEventListener("gripup", function (evt) {
+    });
+    // B button
+    handright.addEventListener("bbuttondown", function (evt) {
+    });
+    document.body.addEventListener("mousedown", function (evt) {
+      clicked();
+      //		console.log(evt)
+    });
+  },
+  tick: () => {
+    if (this.state == GAME) {
+      const hands = [handright, handleft];
+			//let pp = [];
       for (let i = 0; i < hands.length; i++) {
         const hp = hands[i].getAttribute("position");
-        const d = hp.distanceTo(pnt[cnt]);
-        if (d <= size * 1.2) {
-          scene.removeChild(texts[cnt]);
-          scene.removeChild(objs[cnt]);
-          cnt++;
-          if (cnt == ns) {
+        const d = hp.distanceTo(this.pnt[cnt]);
+				//pp.push(d);
+        if (d <= this.size * 1.2) {
+          this.scene.removeChild(this.texts[cnt]);
+          this.scene.removeChild(this.objs[cnt]);
+          this.cnt++;
+          if (this.cnt == ns) {
             const dt = (new Date().getTime() - startt) / 1000;
-            score = dt;
-            if (score < highs) {
-              highs = score;
-              text2.setAttribute(
+            this.score = dt;
+            if (this.score < this.highs) {
+              this.highs = this.score;
+              this.text2.setAttribute(
                 "value",
                 "HIGH SCORE! " + dt.toFixed(2) + "sec",
               );
             } else {
-              text2.setAttribute("value", "CLEAR : " + dt.toFixed(2) + "sec");
+              this.text2.setAttribute("value", "CLEAR : " + dt.toFixed(2) + "sec");
             }
-            state = CLEAR;
+            this.state = CLEAR;
             break;
           }
         }
       }
+			//this.text1.setAttribute("value", pp.join(","));
+			//this.text2.setAttribute("value", cnt);
     }
-    requestAnimationFrame(loop);
-  };
-  loop();
-
-  const selectNear = function (hand) {
-    const hp = hand.getAttribute("position");
-    let min = size * 1.2;
-    let np = -1;
-    for (let i = 0; i < 4; i++) {
-      let d = p[i].distanceTo(hp);
-      if (d < min) {
-        min = d;
-        np = i;
-      }
-    }
-    if (np >= 0) {
-      return objs[np];
-    }
-    return null;
-  };
-  const clicked = () => {
-		if (state == TITLE) {
-      init();
-    } else if (state == GAME) {
-    } else if (state == CLEAR) {
-      title();
-    }
-  };
-
-  handright.addEventListener("triggerdown", function (evt) {
-    clicked();
-  });
-  handright.addEventListener("triggerup", function (evt) {
-  });
-  handright.addEventListener("gripdown", function (evt) {
-  });
-  handright.addEventListener("gripup", function (evt) {
-  });
-  handleft.addEventListener("triggerdown", function (evt) {
-    clicked();
-  });
-  handleft.addEventListener("triggerup", function (evt) {
-  });
-  handleft.addEventListener("gripdown", function (evt) {
-  });
-  handleft.addEventListener("gripup", function (evt) {
-  });
-  // B button
-  handright.addEventListener("bbuttondown", function (evt) {
-  });
-  //
-  /*
-    AFRAME.registerComponent('cursor-listener', {
-        init: function () {
-            this.el.addEventListener('click', function (evt) {
-				console.log(evt)
-//                console.log('I was clicked at: ', evt.detail.intersection.point);
-            });
-        }
-	});
-	*/
-
-  document.body.addEventListener("mousedown", function (evt) {
-    clicked();
-    //		console.log(evt)
-  });
-};
+  },
+});
 </script>
-<a-scene>
+<a-scene id=scene main>
 	<a-sky color="#444444"></a-sky>
 	<a-entity id=handleft oculus-touch-controls="hand: left"></a-entity>
-	<a-entity id=handright oculus-touch-controls="hand: right" laser-controls raycaster="showLine: true; far: .05" line="color: white; opacity: 0.75;"></a-entity>
+	<a-entity id=handright oculus-touch-controls="hand: right"></a-entity>
 <!--
+	<a-entity id=handleft oculus-touch-controls="hand: left"></a-entity>
+	<a-entity  oculus-touch-controls="hand: right" laser-controls raycaster="showLine: true; far: .05" line="color: white; opacity: 0.75;"></a-entity>
 	
 	<a-entity camera look-controls>
 		<a-entity cursor="rayOrigin: mouse"
